@@ -41,10 +41,22 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function sendDataToGoogleSheets(data) {
-    // כאן תהיה הפונקציה לשליחת הנתונים ל-Google Sheets
-    // לצורך הדוגמה, נדפיס את הנתונים לקונסול ונעבור לדף האישור
-    console.log('Sending data to Google Sheets:', data);
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzZ4Q8Tq8tTZwN9dPf5PB-kXCejoWnuRe3uAAuUxc6_z0fLZybjAlkYuy2RpH1jpXPi7Q/exec'; // החלף עם ה-URL שקיבלת בשלב הקודם
     
-    // מעבר לדף אישור ההרשמה
-    window.location.href = `confirmation.html?date=${data.date}&evening=${data.eveningCount}&morning=${data.morningCount}`;
+    fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        console.log('Success!', response);
+        window.location.href = `confirmation.html?date=${data.date}&evening=${data.eveningCount}&morning=${data.morningCount}`;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('אירעה שגיאה בעת ההרשמה. אנא נסה שנית.');
+    });
 }
