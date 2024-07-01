@@ -3,22 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הרשמה לשבתות</title>
+    <title>הרשמה לשבתות - בית חב"ד תאילנד</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>הרשמה לשבתות</h1>
-        <p>ברוכים הבאים לאתר ההרשמה לשבתות. בחרו את השבת הרצויה מהרשימה להלן.</p>
+        <div class="logo">
+            <img src="path-to-chabad-logo.png" alt="Chabad Thailand Logo">
+        </div>
+        <div class="language-switch">
+            <button>English</button>
+        </div>
     </header>
     <main>
-        <div id="shabbat-list">
-            <!-- כאן יוצגו השבתות הזמינות -->
+        <h1>החוויה שלך בתאילנד</h1>
+        <p>מתארחים בבית חב"ד בשבת וחג</p>
+        
+        <div class="registration-form">
+            <h2>בחרו בית חב"ד</h2>
+            <select>
+                <option>פוקט - הרב שלום גליצנשטיין</option>
+            </select>
+            
+            <h3>מתי אתם רוצים להגיע?</h3>
+            <div class="shabbat-options">
+                <div class="shabbat-card">
+                    <h4>פרשת קרח</h4>
+                    <p>05/07/2024 · 19:00</p>
+                </div>
+                <!-- Add more Shabbat cards here -->
+            </div>
+            
+            <div class="meal-selection">
+                <div>
+                    <label>ארוחות ערב שבת/חג?</label>
+                    <select><option>1</option></select>
+                </div>
+                <div>
+                    <label>סעודות שבת בבוקר?</label>
+                    <select><option>0</option></select>
+                </div>
+            </div>
+            
+            <button class="submit-btn">המשך</button>
         </div>
     </main>
-    <footer>
-        <p>© 2024 אתר הרשמה לשבתות. כל הזכויות שמורות.</p>
-    </footer>
-    <script src="script.js"></script>
 </body>
 </html>
