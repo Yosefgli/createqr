@@ -25,7 +25,7 @@
             margin-bottom: 20px;
         }
 
-        #downloadBtn {
+        .button {
             background-color: #4CAF50;
             color: white;
             padding: 12px 24px;
@@ -34,9 +34,10 @@
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s;
+            margin: 10px;
         }
 
-        #downloadBtn:hover {
+        .button:hover {
             background-color: #45a049;
         }
 
@@ -45,17 +46,54 @@
             margin-top: 20px;
             text-align: center;
         }
+
+        .url-container {
+            display: flex;
+            align-items: center;
+            margin: 20px;
+            max-width: 800px;
+            width: 90%;
+        }
+
+        #imageUrl {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #copyButton {
+            background-color: #2196F3;
+        }
+
+        #copyButton:hover {
+            background-color: #1976D2;
+        }
+
+        .copied {
+            background-color: #45a049 !important;
+        }
     </style>
 </head>
 <body>
     <div id="qrcode"></div>
-    <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
+    <button class="button" id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
+    <div class="url-container">
+        <input type="text" id="imageUrl" readonly>
+        <button class="button" id="copyButton" onclick="copyImageUrl()">Copy URL</button>
+    </div>
     <div id="error"></div>
 
     <script>
         // Get the URL parameter
         const urlParams = new URLSearchParams(window.location.search);
         const qrcodeParam = urlParams.get('qrcode');
+        let imageUrl = '';
 
         if (qrcodeParam) {
             try {
@@ -63,7 +101,7 @@
                 const decodedUrl = decodeURIComponent(qrcodeParam);
                 
                 // Create QR Code
-                new QRCode(document.getElementById("qrcode"), {
+                const qr = new QRCode(document.getElementById("qrcode"), {
                     text: decodedUrl,
                     width: 256,
                     height: 256,
@@ -71,30 +109,60 @@
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
                 });
+
+                // Set timeout to allow QR code to generate
+                setTimeout(() => {
+                    const canvas = document.querySelector('#qrcode canvas');
+                    if (canvas) {
+                        imageUrl = canvas.toDataURL('image/png');
+                        document.getElementById('imageUrl').value = imageUrl;
+                    }
+                }, 100);
+
             } catch (error) {
                 document.getElementById("error").textContent = "Invalid URL parameter";
                 document.getElementById("downloadBtn").style.display = "none";
+                document.getElementById("copyButton").style.display = "none";
+                document.getElementById("imageUrl").style.display = "none";
             }
         } else {
             document.getElementById("error").textContent = "No QR code parameter provided";
             document.getElementById("downloadBtn").style.display = "none";
+            document.getElementById("copyButton").style.display = "none";
+            document.getElementById("imageUrl").style.display = "none";
         }
 
         function downloadQRCode() {
-            // Get the QR code canvas
             const canvas = document.querySelector('#qrcode canvas');
             
             if (canvas) {
-                // Create a temporary link
                 const link = document.createElement('a');
                 link.download = 'qrcode.png';
                 link.href = canvas.toDataURL('image/png');
                 
-                // Trigger download
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
             }
+        }
+
+        function copyImageUrl() {
+            const urlInput = document.getElementById('imageUrl');
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999);
+            
+            navigator.clipboard.writeText(urlInput.value).then(() => {
+                const copyButton = document.getElementById('copyButton');
+                copyButton.textContent = 'Copied!';
+                copyButton.classList.add('copied');
+                
+                setTimeout(() => {
+                    copyButton.textContent = 'Copy URL';
+                    copyButton.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
         }
     </script>
 </body>
