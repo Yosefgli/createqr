@@ -1,350 +1,101 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>מערכת כניסה מאובטחת</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            padding: 20px;
-            color: white;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        }
-
-        #videoContainer {
-            width: 100%;
-            border-radius: 15px;
-            overflow: hidden;
-            background: #000;
-            margin-bottom: 20px;
-            position: relative;
-            aspect-ratio: 4/3;
-        }
-
-        #video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1);
-        }
-
-        #display {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            height: 60px;
-            font-size: 32px;
-            color: white;
-            text-align: center;
-            line-height: 60px;
-            margin: 20px 0;
-            letter-spacing: 5px;
-        }
-
-        #keypad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            padding: 10px;
-        }
-
-        .key {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            font-size: 24px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-        }
-
-        .key:active {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(0.95);
-        }
-
-        .key.enter {
-            background: #4CAF50;
-        }
-
-        .key.clear {
-            background: #f44336;
-        }
-
-        #successOverlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            z-index: 1000;
-        }
-
-        .success-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        #qrcode {
             background: white;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-        }
-
-        .success-content h2 {
-            color: #2a5298;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
-            font-size: 24px;
         }
 
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: #4CAF50;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        #downloadBtn {
+            background-color: #4CAF50;
             color: white;
-            font-size: 40px;
-        }
-
-        .close-button {
-            background: #2a5298;
-            color: white;
+            padding: 12px 24px;
             border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 16px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s ease;
+            font-size: 16px;
+            transition: background-color 0.3s;
         }
 
-        #loader {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            justify-content: center;
-            align-items: center;
+        #downloadBtn:hover {
+            background-color: #45a049;
         }
 
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #2a5298;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 380px) {
-            .key {
-                padding: 15px;
-                font-size: 20px;
-            }
+        #error {
+            color: red;
+            margin-top: 20px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="videoContainer">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas" style="display: none;"></canvas>
-        </div>
-        
-        <div id="display"></div>
-        
-        <div id="keypad">
-            <button class="key">1</button>
-            <button class="key">2</button>
-            <button class="key">3</button>
-            <button class="key">4</button>
-            <button class="key">5</button>
-            <button class="key">6</button>
-            <button class="key">7</button>
-            <button class="key">8</button>
-            <button class="key">9</button>
-            <button class="key clear">C</button>
-            <button class="key">0</button>
-            <button class="key enter">⏎</button>
-        </div>
-    </div>
-
-    <div id="successOverlay">
-        <div class="success-content">
-            <div class="success-icon">✓</div>
-            <h2>הכניסה בוצעה בהצלחה!</h2>
-            <button class="close-button" onclick="closeSuccessOverlay()">סגור</button>
-        </div>
-    </div>
-
-    <div id="loader">
-        <div class="spinner"></div>
-    </div>
+    <div id="qrcode"></div>
+    <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
+    <div id="error"></div>
 
     <script>
-        let code = '';
-        const display = document.getElementById('display');
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const successOverlay = document.getElementById('successOverlay');
-        const loader = document.getElementById('loader');
-        const webhookUrl = 'https://hook.integrator.boost.space/b424j8t6ximfa24pcsy29cw3sjyayffc';
-        const imgbbApiKey = '8a5d2394f52a7b0dba4433d8255a7436';
+        // Get the URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const qrcodeParam = urlParams.get('qrcode');
 
-        async function startCamera() {
+        if (qrcodeParam) {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'user',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    } 
+                // Decode the URL parameter
+                const decodedUrl = decodeURIComponent(qrcodeParam);
+                
+                // Create QR Code
+                new QRCode(document.getElementById("qrcode"), {
+                    text: decodedUrl,
+                    width: 256,
+                    height: 256,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
                 });
-                video.srcObject = stream;
-                video.play();
-            } catch (err) {
-                console.error('שגיאה בהפעלת המצלמה:', err);
-                alert('לא הצלחנו לגשת למצלמה. אנא ודא שנתת הרשאת גישה למצלמה.');
+            } catch (error) {
+                document.getElementById("error").textContent = "Invalid URL parameter";
+                document.getElementById("downloadBtn").style.display = "none";
+            }
+        } else {
+            document.getElementById("error").textContent = "No QR code parameter provided";
+            document.getElementById("downloadBtn").style.display = "none";
+        }
+
+        function downloadQRCode() {
+            // Get the QR code canvas
+            const canvas = document.querySelector('#qrcode canvas');
+            
+            if (canvas) {
+                // Create a temporary link
+                const link = document.createElement('a');
+                link.download = 'qrcode.png';
+                link.href = canvas.toDataURL('image/png');
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
         }
-
-        function captureAndUpload() {
-            loader.style.display = 'flex';
-            
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            
-            const imageBase64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
-            
-            uploadToImgBB(imageBase64);
-        }
-
-        async function uploadToImgBB(base64Image) {
-            const formData = new FormData();
-            formData.append('image', base64Image);
-
-            try {
-                const response = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    await sendDataToWebhook(code, data.data.url);
-                } else {
-                    console.error('שגיאה בהעלאת התמונה:', data.error);
-                    alert('שגיאה בהעלאת התמונה, אנא נסה שנית');
-                    loader.style.display = 'none';
-                }
-            } catch (err) {
-                console.error('שגיאה בהעלאת התמונה:', err);
-                alert('שגיאה בהעלאת התמונה, אנא נסה שנית');
-                loader.style.display = 'none';
-            }
-        }
-
-        async function sendDataToWebhook(code, imageUrl) {
-            try {
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        code: code,
-                        imageUrl: imageUrl
-                    })
-                });
-                
-                if (response.ok) {
-                    loader.style.display = 'none';
-                    showSuccessOverlay();
-                }
-            } catch (err) {
-                console.error('שגיאה בשליחת הנתונים:', err);
-                alert('שגיאה בשליחת הנתונים, אנא נסה שנית');
-                loader.style.display = 'none';
-            }
-        }
-
-        function showSuccessOverlay() {
-            successOverlay.style.display = 'block';
-        }
-
-        function closeSuccessOverlay() {
-            successOverlay.style.display = 'none';
-            code = '';
-            display.textContent = '';
-        }
-
-        document.querySelectorAll('.key').forEach(key => {
-            key.addEventListener('click', () => {
-                const value = key.textContent;
-                
-                if (value === 'C') {
-                    code = '';
-                } else if (value === '⏎') {
-                    if (code.length > 0) {
-                        captureAndUpload();
-                    }
-                } else if (code.length < 8) {
-                    code += value;
-                }
-                
-                display.textContent = '*'.repeat(code.length);
-            });
-        });
-
-        // Start camera when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            startCamera();
-        });
     </script>
 </body>
 </html>
