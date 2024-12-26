@@ -1,24 +1,200 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הרשמה לשבתות</title>
-    <link rel="stylesheet" href="style.css">
+    <title>מערכת קוד והצלמה</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+        }
+
+        #videoContainer {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #video {
+            width: 100%;
+            height: 300px;
+            background: #000;
+        }
+
+        #display {
+            width: 100%;
+            max-width: 300px;
+            height: 50px;
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+            line-height: 50px;
+        }
+
+        #keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 300px;
+            width: 100%;
+        }
+
+        .key {
+            background: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .key:active {
+            background: #e0e0e0;
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>הרשמה לשבתות</h1>
-        <p>ברוכים הבאים לאתר ההרשמה לשבתות. בחרו את השבת הרצויה מהרשימה להלן.</p>
-    </header>
-    <main>
-        <div id="shabbat-list">
-            <!-- כאן יוצגו השבתות הזמינות -->
+    <div id="videoContainer">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas" style="display: none;"></canvas>
+    </div>
+    
+    <div id="display"></div>
+    
+    <div id="keypad">
+        <button class="key">1</button>
+        <button class="key">2</button>
+        <button class="key">3</button>
+        <button class="key">4</button>
+        <button class="key">5</button>
+        <button class="key">6</button>
+        <button class="key">7</button>
+        <button class="key">8</button>
+        <button class="key">9</button>
+        <button class="key">C</button>
+        <button class="key">0</button>
+        <button class="key">⏎</button>
+    </div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <h2>הפעולה בוצעה בהצלחה!</h2>
+            <button onclick="closeModal()">סגור</button>
         </div>
-    </main>
-    <footer>
-        <p>© 2024 אתר הרשמה לשבתות. כל הזכויות שמורות.</p>
-    </footer>
-    <script src="script.js"></script>
+    </div>
+
+    <script>
+        let code = '';
+        const display = document.getElementById('display');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const modal = document.getElementById('modal');
+
+        // הפעלת המצלמה
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error('שגיאה בהפעלת המצלמה:', err);
+            }
+        }
+
+        // צילום תמונה
+        function captureImage() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            return canvas.toDataURL('image/jpeg');
+        }
+
+        // שליחת הנתונים
+        async function sendData(code, image) {
+            // כאן תוכל להכניס את כתובת ה-webhook שלך
+            const webhookUrl = 'https://hook.integrator.boost.space/b424j8t6ximfa24pcsy29cw3sjyayffc';
+            
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        image: image
+                    })
+                });
+                
+                if (response.ok) {
+                    showModal();
+                }
+            } catch (err) {
+                console.error('שגיאה בשליחת הנתונים:', err);
+            }
+        }
+
+        function showModal() {
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            code = '';
+            display.textContent = '';
+        }
+
+        // הוספת מאזינים לכפתורים
+        document.querySelectorAll('.key').forEach(key => {
+            key.addEventListener('click', () => {
+                const value = key.textContent;
+                
+                if (value === 'C') {
+                    code = '';
+                } else if (value === '⏎') {
+                    const image = captureImage();
+                    sendData(code, image);
+                } else {
+                    code += value;
+                }
+                
+                display.textContent = '*'.repeat(code.length);
+            });
+        });
+
+        // הפעלת המצלמה בטעינת העמוד
+        startCamera();
+    </script>
 </body>
 </html>
